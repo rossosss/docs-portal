@@ -1,0 +1,17 @@
+node_modules/
+build/
+.docusaurus/
+.env
+.env.*
+!.env.example
+generated-docs/*
+!generated-docs/.gitkeep
+static/build-manifest.json
+static/source-manifest.json
+.collection.json
+.docs-stage-*/
+dist/
+coverage/
+*.log
+.collector-test-*/
+audit.json

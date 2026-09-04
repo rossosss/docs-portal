@@ -1,0 +1,23 @@
+projects:
+  - id: terminal
+    name: Terminal
+    owner: YOUR_GITHUB_USERNAME
+    repository: terminal-demo
+    branch: main
+    docsPath: docs
+    targetPath: projects/terminal
+  - id: gateway
+    name: Gateway
+    owner: YOUR_GITHUB_USERNAME
+    repository: gateway-demo
+    branch: main
+    docsPath: docs
+    targetPath: projects/gateway
+  - id: common
+    name: Общая информация
+    owner: YOUR_GITHUB_USERNAME
+    repository: docs-portal
+    branch: main
+    docsPath: docs/common
+    targetPath: common
+

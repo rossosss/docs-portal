@@ -1,0 +1,57 @@
+name: Build documentation
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  repository_dispatch:
+    types: [docs-updated]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: docs-portal-${{ github.event_name == 'pull_request' && github.ref || 'pages' }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run docs:validate
+      - run: npm run docs:collect
+        env:
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          DOCS_READ_TOKEN: ${{ secrets.DOCS_READ_TOKEN }}
+      - run: npm run docs:manifest
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm ci
+        working-directory: server
+      - run: npm run lint && npm run typecheck && npm test && npm run build
+        working-directory: server
+      - run: npm run build
+        env:
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          DOCS_API_URL: ${{ vars.DOCS_API_URL }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          BASE_URL: /docs-portal/
+      - run: npm run verify:site
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: build
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml
