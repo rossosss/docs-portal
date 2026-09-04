@@ -43,7 +43,7 @@ export class DocumentService{
   if(!file||file.sha!==d.expectedSha)throw conflict();
   const {metadata}=splitDocument(file.content);
   const body=renderDocument(d.title,d.content,metadata);
-  const stem=d.path.split('/').pop()!.slice(0,-3).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)||'document';
+  const stem=d.path.split('/').pop()!.slice(0,-3).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70).replace(/-$/,'')||'document';
   return this.submit(p,d.path,d.title,body,branchName(stem,'edit'),base,file.sha);
  }
  private async submit(p:Project,path:string,title:string,body:string,branch:string,base:string,fileSha?:string){
@@ -65,4 +65,3 @@ export class DocumentService{
   }catch(e){throw Object.assign(new ApiError(502,'Не удалось создать Pull Request','PR_FAILED'),{cause:e,branch});}
  }
 }
-

@@ -19,7 +19,8 @@ export class GitHubService implements GitHubPort{
   try{
    const {data}=await (await this.client()).repos.getContent({...this.repo(p),path,ref});
    if(Array.isArray(data)||data.type!=='file'||!('content' in data))throw new ApiError(400,'Путь не является обычным файлом');
-   if(data.size>100_000)throw new ApiError(413,'Markdown не более 100 KB');
+   // Allow generated frontmatter in addition to the 100 KB Markdown body.
+   if(data.size>128_000)throw new ApiError(413,'Файл с метаданными не более 128 KB');
    return {sha:data.sha,content:Buffer.from(data.content,'base64').toString('utf8')};
   }catch(e){if((e as {status?:number}).status===404)return null;throw e;}
  }
@@ -40,4 +41,3 @@ export class GitHubService implements GitHubPort{
    body:'Документ создан через Docs Portal.\n\nПроект: '+p.name+'\n\nПуть:\n'+String.fromCharCode(96)+path+String.fromCharCode(96)})).data;
  }
 }
-
