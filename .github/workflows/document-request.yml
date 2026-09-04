@@ -1,0 +1,22 @@
+name: Create documentation PR
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+concurrency:
+  group: docs-request-${{ github.event.issue.number }}
+  cancel-in-progress: false
+jobs:
+  request:
+    if: startsWith(github.event.issue.title, '[docs-portal]') && !github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: rossosss/docs-portal/.github/actions/document-request@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+

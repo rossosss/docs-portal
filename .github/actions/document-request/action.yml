@@ -1,0 +1,22 @@
+name: Docs Portal request
+description: Validate a documentation issue and create a branch and Pull Request in its repository.
+inputs:
+  github-token:
+    description: Repository-scoped automatic GITHUB_TOKEN
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - shell: bash
+      env:
+        ACTION_ROOT: ${{ github.action_path }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        npm ci --prefix "$ACTION_ROOT/../../../server"
+        if [ ! -e "$ACTION_ROOT/../../../node_modules" ]; then
+          ln -s "$ACTION_ROOT/../../../server/node_modules" "$ACTION_ROOT/../../../node_modules"
+        fi
+        "$ACTION_ROOT/../../../server/node_modules/.bin/tsx" "$ACTION_ROOT/index.mts"

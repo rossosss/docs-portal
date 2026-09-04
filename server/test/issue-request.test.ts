@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseRequest,validateTarget,marker} from '../src/actions/issue-request.js';
+import type {Project} from '../src/types/index.js';
+const p:Project={id:'terminal',name:'Terminal',owner:'rossosss',repository:'terminal-demo',branch:'main',docsPath:'docs',targetPath:'projects/terminal'};
+const draft={operation:'create',projectId:'terminal',section:'',title:'Test',slug:'test',content:'# Test'};
+const wrap=(value:unknown)=>marker+'\n```json\n'+JSON.stringify(value,null,2)+'\n```';
+test('issue request parses only marked strict requests',()=>{assert.equal(parseRequest(wrap(draft)).operation,'create');assert.throws(()=>parseRequest(JSON.stringify(draft)));assert.throws(()=>parseRequest(wrap({...draft,repository:'evil'})));assert.throws(()=>parseRequest(wrap({...draft,section:'../'})));});
+test('issue body transport limit is enforced',()=>assert.throws(()=>parseRequest(wrap({...draft,content:'x'.repeat(60000)}))));
+test('workflow accepts only owner and matching whitelisted repository',()=>{assert.equal(validateTarget([p],'terminal','rossosss/terminal-demo','OWNER'),p);assert.throws(()=>validateTarget([p],'terminal','rossosss/gateway-demo','OWNER'));assert.throws(()=>validateTarget([p],'terminal','rossosss/terminal-demo','CONTRIBUTOR'));assert.throws(()=>validateTarget([p],'unknown','rossosss/terminal-demo','OWNER'));});

@@ -1,5 +1,23 @@
 # Архитектура
 
+## Опубликованный режим без HTTP backend
+
+```mermaid
+flowchart TD
+    UI[GitHub Pages: статический редактор] --> I[Подтверждение Issue владельцем в GitHub]
+    I --> A[GitHub Actions в целевом repository]
+    S[sources.yml whitelist] --> A
+    A --> V[Validation + SHA conflict check]
+    V --> B[Отдельная docs-ветка]
+    B --> C[Commit]
+    C --> PR[Pull Request + ссылка в Issue]
+    PR --> R[Review и merge владельцем]
+    R --> P[Проверка SHA по расписанию или dispatch]
+    P --> D[Docusaurus build + GitHub Pages]
+```
+
+Ни отдельного сервера, ни PAT не требуется. Ниже сохранены исходные схемы альтернативного Fastify PoC; в опубликованном режиме роль Docs API выполняется одноразовой GitHub Action.
+
 ## Чтение и публикация
 
 ```mermaid
@@ -64,4 +82,3 @@ sequenceDiagram
 ```
 
 PAT доступен только API или отдельным CI шагам чтения/dispatch. Браузер не получает GitHub credentials.
-
