@@ -1,23 +1,22 @@
 projects:
   - id: terminal
     name: Terminal
-    owner: YOUR_GITHUB_USERNAME
+    owner: rossosss
     repository: terminal-demo
     branch: main
     docsPath: docs
     targetPath: projects/terminal
   - id: gateway
     name: Gateway
-    owner: YOUR_GITHUB_USERNAME
+    owner: rossosss
     repository: gateway-demo
     branch: main
     docsPath: docs
     targetPath: projects/gateway
   - id: common
     name: Общая информация
-    owner: YOUR_GITHUB_USERNAME
+    owner: rossosss
     repository: docs-portal
     branch: main
     docsPath: docs/common
     targetPath: common
-

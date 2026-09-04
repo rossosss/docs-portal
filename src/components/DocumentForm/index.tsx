@@ -6,15 +6,17 @@ import MarkdownEditor from '../MarkdownEditor';
 import MarkdownPreview from '../MarkdownPreview';
 export default function DocumentForm({edit=false}:{edit?:boolean}){
  const {siteConfig}=useDocusaurusContext();
- const api=useMemo(()=>docsApi(String(siteConfig.customFields?.docsApiUrl)),[siteConfig.customFields?.docsApiUrl]);
+ const apiUrl=String(siteConfig.customFields?.docsApiUrl||'');
+ const api=useMemo(()=>docsApi(apiUrl),[apiUrl]);
  const [projects,setProjects]=useState<Project[]>([]),[projectId,setProject]=useState(''),[section,setSection]=useState('');
  const [title,setTitle]=useState(''),[slug,setSlug]=useState(''),[content,setContent]=useState('');
  const [existing,setExisting]=useState<ExistingDocument|null>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[result,setResult]=useState<Result|null>(null);
  useEffect(()=>{
   let active=true;
-  async function load(){
+ async function load(){
    try{
+    if(!apiUrl)return;
     if(edit){
      const q=new URLSearchParams(window.location.search),id=q.get('project'),path=q.get('path');
      if(!id||!path)throw new Error('В ссылке не указан проект или путь документа.');
@@ -26,7 +28,7 @@ export default function DocumentForm({edit=false}:{edit?:boolean}){
    }catch(e){if(active)setError((e as Error).message);}finally{if(active)setLoading(false);}
   }
   void load();return()=>{active=false;};
- },[api,edit]);
+ },[api,apiUrl,edit]);
  const project=projects.find(p=>p.id===projectId);
  async function submit(e:React.FormEvent){
   e.preventDefault();setError('');setBusy(true);setResult(null);
@@ -36,6 +38,7 @@ export default function DocumentForm({edit=false}:{edit?:boolean}){
    setResult(response);
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
+ if(!apiUrl)return <div className="notice" role="status"><h2>Редактор пока не подключён</h2><p>Документация уже опубликована. Для создания и редактирования документов нужно подключить Docs API.</p><p>До подключения API можно предложить изменение через ссылку «Открыть в GitHub» на странице документа.</p></div>;
  if(loading)return <p role="status">Загрузка проекта…</p>;
  return <form onSubmit={submit}>
  {error&&<div className="notice error" role="alert">{error}</div>}
@@ -51,4 +54,3 @@ export default function DocumentForm({edit=false}:{edit?:boolean}){
  </>}
  </form>;
 }
-

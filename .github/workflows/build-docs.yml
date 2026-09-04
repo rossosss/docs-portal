@@ -7,13 +7,53 @@ on:
   repository_dispatch:
     types: [docs-updated]
   workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
 permissions:
   contents: read
 concurrency:
   group: docs-portal-${{ github.event_name == 'pull_request' && github.ref || 'pages' }}
   cancel-in-progress: false
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.sources.outputs.changed }}
+    steps:
+      - id: sources
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName !== 'schedule') {
+              core.setOutput('changed', 'true');
+              return;
+            }
+            const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/build-manifest.json`;
+            const response = await fetch(url, {cache: 'no-store'});
+            if (!response.ok) {
+              core.setOutput('changed', 'true');
+              return;
+            }
+            const manifest = await response.json();
+            if (!Array.isArray(manifest.sources) || manifest.sources.length === 0) {
+              throw new Error('Invalid published build manifest');
+            }
+            for (const source of manifest.sources) {
+              if (!/^[A-Za-z0-9_-]+\/[A-Za-z0-9_.-]+$/.test(source.repository)) {
+                throw new Error('Invalid source repository');
+              }
+              const [owner, repo] = source.repository.split('/');
+              const {data} = await github.rest.repos.getCommit({owner, repo, ref: 'main'});
+              if (data.sha !== source.commit) {
+                core.setOutput('changed', 'true');
+                return;
+              }
+            }
+            core.setOutput('changed', 'false');
+            core.info('All published source SHAs are current; no rebuild needed.');
   build:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
